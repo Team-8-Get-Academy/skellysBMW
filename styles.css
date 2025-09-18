@@ -3,10 +3,25 @@ body, #app {
   margin: 0;
   height: 100%;
   width: 100%;
+  overflow: hidden;
+}
+
+#app {
+  overflow: auto;
+}
+
+.gameContainer {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #roadContainer {
+  /* Ensure 1:1 Aspect Ratio */
   max-height: 100vw;
+  max-width: 100vh;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -14,7 +29,9 @@ body, #app {
 }
 
 #road {
+  /* Ensure 1:1 Aspect Ratio */
   max-height: 100vw;
+  max-width: 100vh;
   height: 100%;
   width: 100%;
   position: relative;
@@ -25,5 +42,58 @@ body, #app {
   background-position: center;
   background-repeat: no-repeat;
   background-size: auto 100%;
+  image-rendering: crisp-edges;
 }
 
+
+#notifications {
+    position: absolute;
+    background: rgba(0,0,0,0.3);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    padding: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 1000;
+}
+
+.innerNotifModal {
+    max-height: 100%;
+    max-width: 100%;
+
+    height: 300px;
+    width: 500px;
+    background: #424242;
+    color: #fff;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.innerNotifModal .modalTitle {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    width: 100%;
+}
+
+.innerNotifModal .modalContent {
+    font-size: 18px;
+    width: 100%;
+}
+
+.innerNotifModal .modalButtons {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+}
+
+.itemPicture {
+  max-height: 300px;
+  max-width: 260px;
+}

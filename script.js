@@ -1,13 +1,16 @@
+import { showNotification, _showNotification, closeNotification } from "./notif.js";
+
 const app = document.getElementById("app")
 
 // items:
 let currentItem = null;
-let kulometer = 0;
+let kulometer = 40;
 
 class Item {
-  constructor(picture, points) {
+  constructor(picture, points, message) {
     this.picture = picture;
     this.points = points;
+    this.message = message;
   }
 
   useItem() {
@@ -17,7 +20,7 @@ class Item {
 
 class RedBull extends Item {
   constructor() {
-    super("Pictures/redbull.png", 10)
+    super("./Pictures/redbull.png", 10, "Fueling your car with Redbull gives it wings, wrom wrom +10 streetcreds!")
   }
 
   useItem() {
@@ -27,7 +30,7 @@ class RedBull extends Item {
 
 class Diesel extends Item {
   constructor() {
-    super("Pictures/disel.png", -10)
+    super("./Pictures/disel.png", -10, "Diesel is bad for the climate, the streets is displeased -10 streetcreds")
   }
 
   useItem() {
@@ -56,8 +59,8 @@ newObject === object
 0x20 === 0x10
 */
 
-const spoiler = new Item("Pictures/spoiler.png", -10), 
-helloKittySticker = new Item("Pictures/kitty.png", 10),
+const spoiler = new Item("./Pictures/spoiler.png", -10, "The spoiler looks wack -10 streetcreds"), 
+helloKittySticker = new Item("./Pictures/kitty.png", 10, "Sheeeesh, the hello kitty sticker looks fire, +10 streetcreds"),
 redbull = new RedBull(),
 diesel = new Diesel()
 
@@ -79,20 +82,31 @@ class Character {
 }
 
 const npcs = [
-  new Character("Bob the Pototo Seller", {
-    
+
+   new Character("Doktor Knokkel","Hey Scelly! Hvordan er ryggen?!","./Pictures/drskeleton.png",{
+    wrong: "Aah... søren..", // -10p
+    correct: "Hmm, alright, ser deg senere!", // 0p
+    verygood: "Aah.. Jeg setter opp en time!" // +10p
   }),
-  new Character("Mujaffa", "hva sjer snuppa?", "placeholder", {
-    wrong: "lite kult azz",
-    correct: "kult",
-    verygood: "megakult maaan.."
+
+  new Character("Bob the Pototo Seller","God Dag Scelly! Hakke sett deg på marked på en stund!","./Pictures/potetmann.jpeg",{
+    wrong: "HÆ?! Dust...",
+    correct: "Aha, jaja.. Du får jobbe videre",
+    verygood: "Kult! Vi kan dele bod! Ser deg der!"
+  }),
+  
+  new Character("Mujaffa", "hva sjer snuppa?", "./Pictures/mojafa.png", {
+    wrong: "lite fet azz",
+    correct: "fet",
+    verygood: "megafet maaaaan!"
   })
 ]
 
+function renderKulobar(){
 
-
-function getCool() {
-  return `<div>${kulometer}%</div>`;
+  return /*HTML*/`<div style="width: 100%; height: 10%; background: black;">
+    <div style="width: ${kulometer}%; height: 100%; background: green;"></div>
+  </div>`
 }
 
 let roadContainer;
@@ -184,12 +198,15 @@ function renderRoad(time) {
 requestAnimationFrame(renderRoad)
 
 function renderView(){
-  app.innerHTML = /*HTML*/`${getCool()}
-  ${getItemDiv()}
-  <div id="roadContainer">
-    <div id="road" style="translateY(${road.yPosition}px)">
-      <div id="roadTop" style="background-image: url(${road.topImg});"></div>
-      <div id="roadBottom" style="background-image: url(${road.bottomImg});"></div>
+  app.innerHTML = /*HTML*/`${renderKulobar()}
+  <div class="gameContainer">
+    <div id="roadContainer">
+      ${getItemDiv()}
+      <img src="./Pictures/bmw.png" style="position: absolute; z-index: 2; top: 50%; left: 75%; transform: translateX(-50%) translateY(-50%);" />
+      <div id="road" style="translateY(${road.yPosition}px)">
+        <div id="roadTop" style="background-image: url(${road.topImg});"></div>
+        <div id="roadBottom" style="background-image: url(${road.bottomImg});"></div>
+      </div>
     </div>
   </div>
   `
@@ -198,7 +215,20 @@ function renderView(){
   roadEl = document.getElementById("road");
   roadTop = document.getElementById("roadTop");
   roadBottom = document.getElementById("roadBottom");
+  
+  let itemImg = document.querySelector(".itemPicture");
 
+  if (itemImg) {
+    itemImg.addEventListener("click", imgListener)
+  }
+}
+
+function imgListener() {
+  showNotification("You picked up the Item", currentItem.message);
+
+    updateKulometer(currentItem.points);
+    currentItem = null;
+    renderView();
 }
 
 
@@ -208,7 +238,7 @@ function getAnswer(){
 }
 function getItemDiv(){
   if (!currentItem) return "";
-  return /*HTML*/`<img class="itemPicture"  src="${currentItem.picture}" alt="">`;
+  return /*HTML*/`<img class="itemPicture"  src="${currentItem.picture}" alt="" style="position: absolute; z-index: 2; top: 50%; left: 25%; transform: translateX(-50%) translateY(-50%);">`;
 
 }
 
@@ -220,19 +250,56 @@ function getCurrentItem(){
   renderView();
 }
 
-function updateKulometer(itemclicked){
-  if (itemclicked.points > 0 ) {
-    kulometer += itemclicked.points;
-  } else if(itemclicked.points < 0 && kulometer > 0){
-    kulometer+= itemclicked.points;
-  }
-  currentItem = "";
+function updateKulometer(points){
+  const newKulometer = Math.max(
+    Math.min(
+      kulometer + points,
+      100
+    ),
+    0
+  )
+  
+  kulometer = newKulometer;
 }
 getCurrentItem();
 setInterval(getCurrentItem, 7000);
 renderView();
+/*new Character("Mujaffa", "hva sjer snuppa?", "./Pictures/mojafa.png", {
+    wrong: "lite fet azz",
+    correct: "fet",
+    verygood: "megafet maaaaan!"
+  })*/
 
-
+showNotification(
+  "Mujaffa",
+  "hva sjer snuppa?",
+  [
+    {
+      text: "lite fet azz",
+      listener: () => {
+        _showNotification("Mujaffa", "You lose 10 creds.")
+        updateKulometer(-10)
+        renderView()
+      }
+    },
+    {
+      text: "fet",
+      listener: () => {
+        _showNotification("Mujaffa", "You get 5 creds.")
+        updateKulometer(5)
+        renderView()
+      }
+    },
+    {
+      text: "megafet maaaaan!",
+      listener: () => {
+        _showNotification("Mujaffa", "You get 10 creds.")
+        updateKulometer(10)
+        renderView()
+      }
+    }
+  ]
+)
 /* Character pops up:
 notification pops up:
 Title - character.name
