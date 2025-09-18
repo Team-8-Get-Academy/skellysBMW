@@ -4,7 +4,7 @@ const app = document.getElementById("app")
 
 // items:
 let currentItem = null;
-let kulometer = 40;
+let kulometer = 50;
 
 class Item {
   constructor(picture, points, message) {
@@ -73,34 +73,72 @@ const items = [
 
 
 class Character {
-  constructor(name, comment, img, data) {
+  constructor(name, comment, img, data, answers) {
     this.name = name;
     this.comment = comment;
     this.img = img;
     this.data = data;
+    this.answers = answers;
   }
 }
 
 const npcs = [
 
    new Character("Doktor Knokkel","Hey Scelly! Hvordan er ryggen?!","./Pictures/drskeleton.png",{
-    wrong: "Aah... søren..", // -10p
-    correct: "Hmm, alright, ser deg senere!", // 0p
-    verygood: "Aah.. Jeg setter opp en time!" // +10p
+    wrong: "Aah... søren.. -10", // -10p
+    correct: "Hmm, alright, ser deg senere! +5", // 0p
+    verygood: "Aah.. Jeg setter opp en time! +10" // +10p    
+  },{
+    correct: "ryggen blir skjeiv av å sitte i bilen.",
+    wrong: "ryggen er rett som en strek"
   }),
 
+  
   new Character("Bob the Pototo Seller","God Dag Scelly! Hakke sett deg på marked på en stund!","./Pictures/potetmann.jpeg",{
-    wrong: "HÆ?! Dust...",
-    correct: "Aha, jaja.. Du får jobbe videre",
-    verygood: "Kult! Vi kan dele bod! Ser deg der!"
+    wrong: "HÆ?! Dust... -10",
+    correct: "Aha, jaja.. Du får jobbe videre +5",
+    verygood: "Kult! Vi kan dele bod! Ser deg der! +10"
+  },{
+    correct: "Ja jeg må steppe opp potetgamet mitt!",
+    wrong: "Poteter er lame azz!"
   }),
   
-  new Character("Mujaffa", "hva sjer snuppa?", "./Pictures/mojafa.png", {
-    wrong: "lite fet azz",
-    correct: "fet",
-    verygood: "megafet maaaaan!"
+  
+  new Character("Mujaffa", "Hva sjera Scelly!?", "./Pictures/mojafa.png", {
+    wrong: "lite fet azz -10",
+    correct: "fet +5",
+    verygood: "megafet maaaaan! +10"
+  },{
+    correct: "gummi eller ei her kommer jeg!",
+    wrong: "dropp det du hakke noe gummi", 
   })
 ]
+
+
+function characterDialog(char) {
+  showNotification(
+    char.name,
+    char.comment,
+    [
+      {
+        text: char.answers.wrong,
+        listener: () => {
+          _showNotification(char.name, char.data.wrong)
+          updateKulometer(-10)
+          renderView()
+        }
+      },
+      {
+        text: char.answers.correct,
+        listener: () => {
+          _showNotification(char.name, kulometer > 50 ? char.data.verygood : char.data.correct)
+          updateKulometer(kulometer > 50 ? 10 : 5)
+          renderView()
+        }
+      }
+    ]
+  )
+}
 
 function renderKulobar(){
 
@@ -197,9 +235,18 @@ function renderRoad(time) {
 
 requestAnimationFrame(renderRoad)
 
+let isGameOver = false;
+
 function renderView(){
+  if (isGameOver) {
+    document.body.innerHTML = "";
+    document.body.style.background = `url(./Pictures/jhonchina.jpg)`
+    return;
+  }
+
   app.innerHTML = /*HTML*/`${renderKulobar()}
   <div class="gameContainer">
+
     <div id="roadContainer">
       ${getItemDiv()}
       <img src="./Pictures/bmw.png" style="position: absolute; z-index: 2; top: 50%; left: 75%; transform: translateX(-50%) translateY(-50%);" />
@@ -233,16 +280,24 @@ function imgListener() {
 
 
 
-function getAnswer(){
-
-}
 function getItemDiv(){
   if (!currentItem) return "";
   return /*HTML*/`<img class="itemPicture"  src="${currentItem.picture}" alt="" style="position: absolute; z-index: 2; top: 50%; left: 25%; transform: translateX(-50%) translateY(-50%);">`;
 
 }
 
+const vineBoom = new Audio("./Pictures/vine-boom.mp3");
+const music = new Audio("./Pictures/xi.ogg");
+vineBoom.loop = true;
+music.loop = true;
 
+
+function gameOver() {
+  vineBoom.play()
+  music.play()
+  isGameOver = true;
+  renderView();
+}
 
 function getCurrentItem(){
   let randomItemIndex = Math.floor(Math.random()* items.length)
@@ -260,9 +315,11 @@ function updateKulometer(points){
   )
   
   kulometer = newKulometer;
+
+  if (kulometer === 0) gameOver();
 }
 getCurrentItem();
-setInterval(getCurrentItem, 7000);
+setInterval(getCurrentItem, 10000);
 renderView();
 /*new Character("Mujaffa", "hva sjer snuppa?", "./Pictures/mojafa.png", {
     wrong: "lite fet azz",
@@ -270,36 +327,10 @@ renderView();
     verygood: "megafet maaaaan!"
   })*/
 
-showNotification(
-  "Mujaffa",
-  "hva sjer snuppa?",
-  [
-    {
-      text: "lite fet azz",
-      listener: () => {
-        _showNotification("Mujaffa", "You lose 10 creds.")
-        updateKulometer(-10)
-        renderView()
-      }
-    },
-    {
-      text: "fet",
-      listener: () => {
-        _showNotification("Mujaffa", "You get 5 creds.")
-        updateKulometer(5)
-        renderView()
-      }
-    },
-    {
-      text: "megafet maaaaan!",
-      listener: () => {
-        _showNotification("Mujaffa", "You get 10 creds.")
-        updateKulometer(10)
-        renderView()
-      }
-    }
-  ]
-)
+characterDialog(npcs[1])
+
+window.characterDialog = characterDialog
+window.npcs = npcs
 /* Character pops up:
 notification pops up:
 Title - character.name
