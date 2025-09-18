@@ -91,9 +91,9 @@ const npcs = [
   },{
     correct: "ryggen blir skjeiv av å sitte i bilen.",
     wrong: "ryggen er rett som en strek"
-  }),
+  }
+),
 
-  
   new Character("Bob the Pototo Seller","God Dag Scelly! Hakke sett deg på marked på en stund!","./Pictures/potetmann.jpeg",{
     wrong: "HÆ?! Dust... -10",
     correct: "Aha, jaja.. Du får jobbe videre +5",
@@ -103,12 +103,11 @@ const npcs = [
     wrong: "Poteter er lame azz!"
   }),
   
-  
   new Character("Mujaffa", "Hva sjera Scelly!?", "./Pictures/mojafa.png", {
     wrong: "lite fet azz -10",
     correct: "fet +5",
     verygood: "megafet maaaaan! +10"
-  },{
+  }, {
     correct: "gummi eller ei her kommer jeg!",
     wrong: "dropp det du hakke noe gummi", 
   })
