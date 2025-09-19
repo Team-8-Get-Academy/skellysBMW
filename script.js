@@ -355,7 +355,7 @@ function updateKulometer(points){
   
   kulometer = newKulometer;
 
-  if (kulometer <= 30) {
+  if (kulometer <= 30 && points < 0) {
     executionWarning.src = "./Pictures/executiondate.webp"
     if (!animationPlaying) {
       animationPlaying = true;
@@ -363,7 +363,7 @@ function updateKulometer(points){
     }
     vineBoomWarning.currentTime = 0;
     vineBoomWarning.play()
-  } else if (kulometer >= 70) {
+  } else if (kulometer >= 70 && points > 0) {
     executionWarning.src = "./Pictures/maocina.png"
     if (!animationPlaying) {
       animationPlaying = true;
