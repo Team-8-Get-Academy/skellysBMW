@@ -371,8 +371,6 @@ function updateKulometer(points){
     }
     bingChilling.currentTime = 1;
     bingChilling.play()
-  } else {
-    executionWarningContainer.style.display = "none";
   }
 
   if (kulometer === 0) gameOver();
