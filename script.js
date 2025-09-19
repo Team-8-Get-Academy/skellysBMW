@@ -382,9 +382,8 @@ function updateKulometer(points){
 window.updateKulometer = updateKulometer
 
 getCurrentItem();
-getCurrentKompis()
 setInterval(getCurrentItem, 10000);
-setInterval(getCurrentKompis, 10000);
+setInterval(getCurrentKompis, 20000);
 renderView();
 
 /* Character pops up:
