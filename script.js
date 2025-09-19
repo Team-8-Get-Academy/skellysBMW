@@ -1,10 +1,13 @@
 import { showNotification, _showNotification, closeNotification } from "./notif.js";
 
 const app = document.getElementById("app")
+const executionWarningContainer = document.getElementById("executionWarningContainer")
+const executionWarning = executionWarningContainer.querySelector(".executionWarning")
 
 // items:
 let currentItem = null;
 let kulometer = 50;
+let CurrentKompis = null;
 
 class Item {
   constructor(picture, points, message) {
@@ -20,7 +23,7 @@ class Item {
 
 class RedBull extends Item {
   constructor() {
-    super("./Pictures/redbull.png", 10, "Fueling your car with Redbull gives it wings, wrom wrom +10 streetcreds!")
+    super("./Pictures/redbull.png", 10, "RedBull i tanken gir bilen vinger, WROM WROM +10 Streetcreds!")
   }
 
   useItem() {
@@ -30,7 +33,7 @@ class RedBull extends Item {
 
 class Diesel extends Item {
   constructor() {
-    super("./Pictures/disel.png", -10, "Diesel is bad for the climate, the streets is displeased -10 streetcreds")
+    super("./Pictures/disel.png", -10, "Diesel fønke dårligt i The Scelly-Mobil, -10 Streetcreds!")
   }
 
   useItem() {
@@ -59,8 +62,8 @@ newObject === object
 0x20 === 0x10
 */
 
-const spoiler = new Item("./Pictures/spoiler.png", -10, "The spoiler looks wack -10 streetcreds"), 
-helloKittySticker = new Item("./Pictures/kitty.png", 10, "Sheeeesh, the hello kitty sticker looks fire, +10 streetcreds"),
+const spoiler = new Item("./Pictures/spoiler.png", -10, "Stor spoiler er sååå lame, -10 Streetcreds!"), 
+helloKittySticker = new Item("./Pictures/kitty.png", 10, "Sheeeesh, Hello Kitty sticker ser farlig ut! +10 streetcreds"),
 redbull = new RedBull(),
 diesel = new Diesel()
 
@@ -89,8 +92,8 @@ const npcs = [
     correct: "Hmm, alright, ser deg senere! +5", // 0p
     verygood: "Aah.. Jeg setter opp en time! +10" // +10p    
   },{
-    correct: "ryggen blir skjeiv av å sitte i bilen.",
-    wrong: "ryggen er rett som en strek"
+    correct: "Ryggen blir skjeiv av å sitte i bilen.",
+    wrong: "Ryggen er rett som en strek"
   }
 ),
 
@@ -104,15 +107,14 @@ const npcs = [
   }),
   
   new Character("Mujaffa", "Hva sjera Scelly!?", "./Pictures/mojafa.png", {
-    wrong: "lite fet azz -10",
-    correct: "fet +5",
-    verygood: "megafet maaaaan! +10"
+    wrong: "Lite fet azz -10",
+    correct: "Fet +5",
+    verygood: "Megafet maaaaan! +10"
   }, {
-    correct: "gummi eller ei her kommer jeg!",
-    wrong: "dropp det du hakke noe gummi", 
+    correct: "Gummi eller ei her kommer jeg!",
+    wrong: "Dropp det du hakke noe gummi!", 
   })
 ]
-
 
 function characterDialog(char) {
   showNotification(
@@ -122,6 +124,8 @@ function characterDialog(char) {
       {
         text: char.answers.wrong,
         listener: () => {
+          CurrentKompis = null;
+          updateVehicleSpeed(100);
           _showNotification(char.name, char.data.wrong)
           updateKulometer(-10)
           renderView()
@@ -130,6 +134,8 @@ function characterDialog(char) {
       {
         text: char.answers.correct,
         listener: () => {
+          CurrentKompis = null;
+          updateVehicleSpeed(100);
           _showNotification(char.name, kulometer > 50 ? char.data.verygood : char.data.correct)
           updateKulometer(kulometer > 50 ? 10 : 5)
           renderView()
@@ -180,7 +186,7 @@ function getRoadPos(timeDiff) {
 function saveRoadState() {
   const time = performance.now();
   const timeDiff = road.timeOrigin ? time - road.timeOrigin : 0;
-  offset = getRoadPos(timeDiff);
+  road.offset = getRoadPos(timeDiff);
   road.timeOrigin = time;
 }
 
@@ -234,18 +240,21 @@ function renderRoad(time) {
 
 requestAnimationFrame(renderRoad)
 
-let isGameOver = false;
+let gameState = null;
 
 function renderView(){
-  if (isGameOver) {
+  if (gameState === "lose") {
     document.body.innerHTML = "";
     document.body.style.background = `url(./Pictures/jhonchina.jpg)`
+    return;
+  } else if (gameState === "win") {
+    document.body.innerHTML = "";
+    document.body.style.background = `url(./Pictures/winnerscreen.jpg)`
     return;
   }
 
   app.innerHTML = /*HTML*/`${renderKulobar()}
   <div class="gameContainer">
-
     <div id="roadContainer">
       ${getItemDiv()}
       <img src="./Pictures/bmw.png" style="position: absolute; z-index: 2; top: 50%; left: 75%; transform: translateX(-50%) translateY(-50%);" />
@@ -254,6 +263,9 @@ function renderView(){
         <div id="roadBottom" style="background-image: url(${road.bottomImg});"></div>
       </div>
     </div>
+    ${CurrentKompis ? `<div>
+      <img src="${CurrentKompis.img}" style="height: 300px" />
+    </div>` : ""}
   </div>
   `
 
@@ -285,16 +297,34 @@ function getItemDiv(){
 
 }
 
+function getCurrentKompis(){
+  if (CurrentKompis) return;
+
+  const index = Math.floor(Math.random() * npcs.length)
+  CurrentKompis = npcs[index]
+  characterDialog(CurrentKompis)
+  updateVehicleSpeed(0)
+  renderView()
+}
+
 const vineBoom = new Audio("./Pictures/vine-boom.mp3");
 const music = new Audio("./Pictures/xi.ogg");
 vineBoom.loop = true;
 music.loop = true;
 
-
 function gameOver() {
   vineBoom.play()
   music.play()
-  isGameOver = true;
+  gameState = "lose";
+  renderView();
+}
+
+const winMusic = new Audio("./Pictures/redsun.mp3")
+winMusic.loop = true;
+
+function winner() {
+  winMusic.play()
+  gameState = "win";
   renderView();
 }
 
@@ -303,6 +333,16 @@ function getCurrentItem(){
   currentItem = items[randomItemIndex]
   renderView();
 }
+
+const vineBoomWarning = new Audio("./Pictures/vine-boom.mp3");
+const bingChilling = new Audio("./Pictures/bing.mp3");
+
+let animationPlaying = false;
+
+executionWarning.addEventListener("animationend", () => {
+  executionWarningContainer.style.display = "none";
+  animationPlaying = false;
+})
 
 function updateKulometer(points){
   const newKulometer = Math.max(
@@ -315,21 +355,38 @@ function updateKulometer(points){
   
   kulometer = newKulometer;
 
+  if (kulometer <= 30) {
+    executionWarning.src = "./Pictures/executiondate.webp"
+    if (!animationPlaying) {
+      animationPlaying = true;
+      executionWarningContainer.style.display = "";
+    }
+    vineBoomWarning.currentTime = 0;
+    vineBoomWarning.play()
+  } else if (kulometer >= 70) {
+    executionWarning.src = "./Pictures/maocina.png"
+    if (!animationPlaying) {
+      animationPlaying = true;
+      executionWarningContainer.style.display = "";
+    }
+    bingChilling.currentTime = 1;
+    bingChilling.play()
+  } else {
+    executionWarningContainer.style.display = "none";
+  }
+
   if (kulometer === 0) gameOver();
+  if (kulometer === 100) winner();
 }
+
+window.updateKulometer = updateKulometer
+
 getCurrentItem();
+getCurrentKompis()
 setInterval(getCurrentItem, 10000);
+setInterval(getCurrentKompis, 10000);
 renderView();
-/*new Character("Mujaffa", "hva sjer snuppa?", "./Pictures/mojafa.png", {
-    wrong: "lite fet azz",
-    correct: "fet",
-    verygood: "megafet maaaaan!"
-  })*/
 
-characterDialog(npcs[1])
-
-window.characterDialog = characterDialog
-window.npcs = npcs
 /* Character pops up:
 notification pops up:
 Title - character.name
